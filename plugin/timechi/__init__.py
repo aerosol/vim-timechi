@@ -53,9 +53,9 @@ class Session(object):
         return event_fn(self)
 
     @atomic
-    def lookup(self, k):
+    def lookup(self, k, default=""):
         db = self.vault
-        v = db.get(k, "")
+        v = db.get(k, default)
         return (db, v)
 
     @atomic

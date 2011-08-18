@@ -50,7 +50,10 @@ if !exists("g:timechi_loaded")
             \CmdwinEnter,CmdwinLeave,BufNewFile,BufRead,BufWrite,BufCreate,
             \BufAdd,BufDelete,BufEnter,BufNew * call s:Event('ping')
 
+    " achievements
+    "
     autocmd BufWrite * call s:Event('save')
+    autocmd BufNew   * call s:Event('buff_created')
     " VimLeave isn't that obvious, it's triggered also when quitting *a buffer*
     " autocmd VimLeave * call s:Event('quit')
     let g:timechi_loaded = 1

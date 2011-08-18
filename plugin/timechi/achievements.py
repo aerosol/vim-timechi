@@ -1,14 +1,14 @@
 #!/usr/bin/env python
-import time
-import subprocess
-#import platform
-from timechi.helpers import log
+import datetime
 
-try:
-    import vim
-    say_command = vim.eval("g:timechi_notification_command")
-except ImportError:
-    say_command = "echo %s"
+def forever_alone_check(*args, **kwargs):
+    today = datetime.datetime.now()
+    return today.hour > 19 and today.weekday() in (4,5)
+
+def night_check(*args, **kwagrs):
+    today = datetime.datetime.now()
+    return today.hour > 1 and today.hour < 4
+
 
 ACHIEVEMENTS = { 
             'save': [
@@ -32,34 +32,27 @@ ACHIEVEMENTS = {
                         'You should be a millionare by now'),
                     (lambda x: int(x) == 10000000,
                         'Mission impossible'),
-                    ]}
+                    ],
+            'buff_created': [
+                    (lambda x: int(x) == 1,
+                        'Buffy'),
+                    (lambda x: int(x) == 1000,
+                        'Bruce Buffer'),
+                ],
+            'i_mode_left': [
+                    (lambda x: int(x) == 10,
+                        'Hedonist'),
+                    (lambda x: int(x) == 1000,
+                        'Escapist'),
+                    (lambda x: int(x) == 10000,
+                        'Superinsecure'),
+                    (lambda x: int(x) == 100000,
+                        'Run Forrest Run')
+                ],
+            'ping': [
+                    (forever_alone_check, 'Forever Alone'),
+                    (night_check, 'Night owl'),
+                ]
 
-def notify(session, achievements):
-    for (_fn, achievement) in achievements:
-        print "Timechi achievement unlocked: %s" % achievement
-        cmd = say_command % achievement
-        subprocess.Popen(cmd.split(" "))
-        session.append('achievements', achievement)
-        time.sleep(1)
-
-def achievement(fn):    
-    """Poor man's events"""
-    def wrapped(*args, **kwargs):
-        event = fn.__name__
-        log("Checking for achievements available: %s" % event)
-        if not event in ACHIEVEMENTS.keys():
-            return fn(*args, **kwargs)
-        else:
-            log("Evaluating achievement conditions")
-            result = fn(*args, **kwargs)
-            session = args[0]
-            val = session.lookup(event) or "0"
-            achievements = filter(lambda (fun, prize): \
-                    fun(val), ACHIEVEMENTS[event])
-            log("Achievements filtered %s" % achievements)
-            if achievements:
-                notify(session, achievements)
-            return result
-    return wrapped
-
+            }
 
