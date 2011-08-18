@@ -64,7 +64,7 @@ class Session(object):
         li = db.get(k, [])
         li.append(v)
         db[k] = li
-        return (db, v)
+        return (db, li)
 
     @atomic
     def store(self, k, v):

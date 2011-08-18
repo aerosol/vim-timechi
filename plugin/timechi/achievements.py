@@ -1,19 +1,31 @@
 #!/usr/bin/env python
 import time
+import subprocess
+#import platform
 from timechi.helpers import log
+
+try:
+    import vim
+    say_command = vim.eval("g:timechi_notification_command")
+except ImportError:
+    say_command = "echo %s"
 
 ACHIEVEMENTS = { 
             'save': [
                     (lambda x: int(x) == 1,
                         'Act like a pro'),
+                    (lambda x: int(x) == 10,
+                        'Act like a pro'),
+                    (lambda x: int(x) == 15,
+                        'Act like a pro'),
                     (lambda x: int(x) == 50,
-                        'ANIMALITY!'),
+                        'Animality!'),
                     (lambda x: int(x) == 100,
                         'Violence'),
                     (lambda x: int(x) == 500,
                         '500 Cent'),
                     (lambda x: int(x) == 1024,
-                        'Kilobyte'),
+                        'Kilosave'),
                     (lambda x: int(x) == 10000,
                         'Professional rapist'),
                     (lambda x: int(x) == 1000000,
@@ -25,8 +37,10 @@ ACHIEVEMENTS = {
 def notify(session, achievements):
     for (_fn, achievement) in achievements:
         print "Timechi achievement unlocked: %s" % achievement
+        cmd = say_command % achievement
+        subprocess.Popen(cmd.split(" "))
         session.append('achievements', achievement)
-        time.sleep(2)
+        time.sleep(1)
 
 def achievement(fn):    
     """Poor man's events"""

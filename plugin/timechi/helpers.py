@@ -3,10 +3,7 @@
 DEBUG = False
 try:
     import vim
-    try:
-        DEBUG = bool(vim.eval("g:timechi_debug"))
-    except:
-        DEBUG = False
+    DEBUG = bool(vim.eval("g:timechi_debug"))
 except ImportError:
     print "Couldnt import vim - debug mode"
     DEBUG = True

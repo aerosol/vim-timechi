@@ -14,6 +14,10 @@ if !exists("g:timechi_debug")
     let g:timechi_debug = 0
 endif
 
+if !exists("g:timechi_notification_command")
+    let g:timechi_notification_command = 'say "%s"'
+endif
+
 let s:plugin_dir = expand('<sfile>:p:h')
 
 function! s:InitTimeChi()
