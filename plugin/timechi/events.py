@@ -1,26 +1,28 @@
 #!/usr/bin/env python
 
-# Event = callable accepting Timer instance
-# TODO: Count characters entered / movements / rename Timer? / ideas? :he event
+#import time
+from timechi.utils import log
 
-def i_mode_entered(timer):
-    busy(timer)
+# Event = callable accepting session instance
+# TODO: Count characters entered / movements / ideas? :he event
 
-def i_mode_left(timer):
-    busy(timer)
+def i_mode_entered(session):
+    ping(session)
+
+def i_mode_left(session):
+    ping(session)
 
 # Basic events
 
-def busy(timer):
-    timer.resume()
+def ping(session):
+    session.resume()
 
-def idle(timer):
-    timer.stop()
+def idle(session):
+    session.inc('total_time', session.pause())
 
-def save(timer):
-    # FIXME
-    timer.stop()
-    print "[*] timechi saving progress"
-    report = open("progress.txt", "a+")
-    report.write("%s\n" % timer.state)
-    report.close()
+def save(session):
+    total_time = session.inc('total_time', session.pause())
+    saves = session.inc('saves')
+    log("Total time: %s with %s saves" % (total_time, saves))
+
+

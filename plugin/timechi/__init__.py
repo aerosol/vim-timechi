@@ -1,47 +1,102 @@
 #!/usr/bin/env python
 import time
+import os
+import uuid
+import shelve
+
 from timechi import events
+from timechi.helpers import log, atomic, Singleton
 
-class Singleton(type):
-    _instances = {}
-    def __call__(class_, *args, **kwargs):
-        if class_ not in class_._instances:
-            class_._instances[class_] = super(Singleton, class_).__call__(*args, **kwargs)
-        return class_._instances[class_]
+def session():
+    return Session()
 
-def get_timer():
-    return Timer()
-
-class Timer(object):
+class Session(object):
     __metaclass__ = Singleton
 
     def __init__(self):
+        self.session_id = uuid.uuid1()
+        log("Initializing session %s" % self)
         self.started = time.time()
-        self.stopped = None
+        self.paused = None
+        self.resumed = None
         self.total = 0
 
     @property
     def state(self):
-        if self.stopped:
+        log("Performing session state check")
+        if self.paused:
             return self.total
-        return self.total + (time.time() - self.started)
+        if self.resumed:
+            return self.total + (time.time() - self.resumed)
+        return time.time() - self.started
 
-    def stop(self):
-        self.stopped = time.time()
-        self.total += self.stopped - self.started
-        print "[-] timechi stopped"
+    def pause(self):
+        if not self.paused:
+            self.paused = time.time()
+            self.total += self.paused - (self.resumed or self.started)
+            self.resumed = None
+            log("Session %s paused" % self)
+        return self.total
 
     def resume(self):
-        if self.stopped:
-            self.stopped = None
-            self.started = time.time()
-            print "[+] timechi resumed"
+        if not self.resumed:
+            self.resumed = time.time()
+            self.paused = None
+            log("Session %s resumed" % self)
+        return self.total
 
     def report_event(self, event):
+        log("Event reported: %s" % event)
         event_fn = getattr(events, event, None)
-        assert event_fn is not None and callable(event_fn)
+        assert event_fn is not None and callable(event_fn), \
+                "Event %s must be callable" % event
         return event_fn(self)
 
+    @atomic
+    def lookup(self, k):
+        db = self.vault
+        v = db.get(k, "")
+        return (db, v)
+
+    @atomic
+    def store(self, k, v):
+        db = self.vault
+        db[k] = v
+        return (db, v)
+
+    @atomic
+    def inc(self, k, a=1):
+        db = self.vault
+        v = db.get(k, 0)
+        db[k] = v + a
+        result = db[k]
+        return (db, result)
+
+    @atomic
+    def dec(self, k, a=1):
+        db = self.vault
+        v = db.get(k, 0)
+        if v > 0:
+            db[k] = (v - a)     
+            result = db[k]
+        return (db, result)
+
+    @property
+    def vault(self):
+        home = os.getenv('USERPROFILE') or os.getenv('HOME')
+        datadir = os.path.join(home, '.vimtimechi')
+        vault = os.path.join(datadir, "vault.db")
+        if not os.path.exists(vault):
+            log("Ensuring DB is present at %s..." % datadir)
+            if not os.path.exists(datadir):
+                log("Creating datadir...")
+                os.mkdir(datadir)
+        return shelve.open(vault)
+
+    def __str__(self):
+        return str(self.session_id)
+
+        
 
             
 
