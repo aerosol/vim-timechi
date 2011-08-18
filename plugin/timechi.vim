@@ -10,7 +10,10 @@ if !has('python')
     finish
 endif
 
-let g:timechi_debug = 1
+if !exists("g:timechi_debug")
+    let g:timechi_debug = 0
+endif
+
 let s:plugin_dir = expand('<sfile>:p:h')
 
 function! s:InitTimeChi()

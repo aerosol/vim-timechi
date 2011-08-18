@@ -17,7 +17,7 @@ if DEBUG:
             f.write("%s\n" % msg)
 else:
     log = lambda msg: DEBUG
-    
+
 
 def atomic(fn):
     """Poor man's transactions"""

@@ -59,6 +59,14 @@ class Session(object):
         return (db, v)
 
     @atomic
+    def append(self, k, v):
+        db = self.vault
+        li = db.get(k, [])
+        li.append(v)
+        db[k] = li
+        return (db, v)
+
+    @atomic
     def store(self, k, v):
         db = self.vault
         db[k] = v
